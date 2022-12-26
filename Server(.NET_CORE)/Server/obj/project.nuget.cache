@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "uXFRfGqkFG50so2UjzfkwhTvxpsplUW79SJPX3ZxveRJ9ox37o+fKAYb2uTDWE85K9+4EA7Gz7zO8KeYhGunsA==",
+  "success": true,
+  "projectFilePath": "/Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/Server.csproj",
+  "expectedPackageFiles": [
+    "/Users/Yijun/.nuget/packages/microsoft.aspnetcore.app.ref/3.1.10/microsoft.aspnetcore.app.ref.3.1.10.nupkg.sha512",
+    "/Users/Yijun/.nuget/packages/microsoft.netcore.app.host.osx-x64/3.1.32/microsoft.netcore.app.host.osx-x64.3.1.32.nupkg.sha512",
+    "/Users/Yijun/.nuget/packages/microsoft.netcore.app.ref/3.1.0/microsoft.netcore.app.ref.3.1.0.nupkg.sha512"
+  ],
+  "logs": []
+}
