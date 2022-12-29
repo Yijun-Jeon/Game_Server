@@ -3,35 +3,42 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using static System.Collections.Specialized.BitVector32;
 
 namespace ServerCore
 {
+    class GameSession : Session
+    {
+        public override void OnConnected(EndPoint endPoint)
+        {
+            Console.WriteLine($"OnConnected: {endPoint}");
+
+            // 보낸다
+            byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server !");
+            Send(sendBuff);
+            Thread.Sleep(100);
+            Disconnect();
+        }
+
+        public override void OnDisconnected(EndPoint endPoint)
+        {
+            Console.WriteLine($"OnDisconnected: {endPoint}");
+        }
+
+        public override void OnRecv(ArraySegment<byte> buffer)
+        {
+            string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
+            Console.WriteLine($"[From Client] {recvData}");
+        }
+
+        public override void OnSend(int numOfBytes)
+        {
+            Console.WriteLine($"Transferred bytes: {numOfBytes}");
+        }
+    }
     class Program
     {
         static Listener _listener = new Listener();
-
-        // listener가 accept 완료 했을 시 수행할 작업 
-        static void OnAcceptHandler(Socket clientSocket)
-        {
-            try
-            {
-                Session session = new Session();
-                session.Start(clientSocket);
-
-                // 보낸다
-                byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server !");
-                session.Send(sendBuff);
-
-                // 1초 후 종	
-                Thread.Sleep(100);
-                session.Disconnect();
-
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-        }
 
         static void Main(string[] args)
         {
@@ -44,7 +51,7 @@ namespace ServerCore
             // 최종 주소 - IP : 식당 주소  Port : 식당 문 번호
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, 7000);
 
-            _listener.Init(endPoint,OnAcceptHandler);
+            _listener.Init(endPoint,() => { return new GameSession(); });
             Console.WriteLine("Listening...");
 
             while (true)
