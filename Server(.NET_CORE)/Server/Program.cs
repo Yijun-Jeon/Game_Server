@@ -4,18 +4,37 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using ServerCore;
+using System.Collections.Generic;
 
 namespace Server
 {
+    // Test Class
+    class Knight
+    {
+        public int hp;
+        public int attack;
+        public string name;
+        public List<int> skills = new List<int>();
+    }
+
     class GameSession : Session
     {
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine($"OnConnected: {endPoint}");
 
-            // 보낸다
-            byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server !");
+            Knight knight = new Knight() { hp = 10, attack = 100 };
+
+            ArraySegment<byte> openSegment = SendBufferHelper.Open(4096);
+            byte[] buffer = BitConverter.GetBytes(knight.hp);
+            byte[] buffer2 = BitConverter.GetBytes(knight.attack);
+            Array.Copy(buffer, 0, openSegment.Array, openSegment.Offset, buffer.Length);
+            Array.Copy(buffer2, 0, openSegment.Array, openSegment.Offset + buffer.Length, buffer2.Length);
+            ArraySegment<byte> sendBuff = SendBufferHelper.Close(buffer.Length + buffer2.Length);
+
+            // 보낸다 
             Send(sendBuff);
+
             Thread.Sleep(100);
             Disconnect();
         }
