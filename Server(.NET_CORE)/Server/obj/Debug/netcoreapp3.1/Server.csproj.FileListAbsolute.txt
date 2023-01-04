@@ -18,14 +18,14 @@
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/bin/Debug/netcoreapp3.1/Server.runtimeconfig.dev.json
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/bin/Debug/netcoreapp3.1/Server.dll
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/bin/Debug/netcoreapp3.1/Server.pdb
+/Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/bin/Debug/netcoreapp3.1/ServerCore.dll
+/Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/bin/Debug/netcoreapp3.1/ServerCore.pdb
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/obj/Debug/netcoreapp3.1/Server.csproj.AssemblyReference.cache
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/obj/Debug/netcoreapp3.1/Server.GeneratedMSBuildEditorConfig.editorconfig
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/obj/Debug/netcoreapp3.1/Server.AssemblyInfoInputs.cache
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/obj/Debug/netcoreapp3.1/Server.AssemblyInfo.cs
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/obj/Debug/netcoreapp3.1/Server.csproj.CoreCompileInputs.cache
+/Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/obj/Debug/netcoreapp3.1/Server.csproj.CopyComplete
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/obj/Debug/netcoreapp3.1/Server.dll
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/obj/Debug/netcoreapp3.1/Server.pdb
 /Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/obj/Debug/netcoreapp3.1/Server.genruntimeconfig.cache
-/Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/bin/Debug/netcoreapp3.1/ServerCore.dll
-/Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/bin/Debug/netcoreapp3.1/ServerCore.pdb
-/Users/Yijun/Desktop/Project/Game_Server/Server(.NET_CORE)/Server/obj/Debug/netcoreapp3.1/Server.csproj.CopyComplete
