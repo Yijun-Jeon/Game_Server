@@ -22,7 +22,37 @@ namespace Server
         public long playerId;
         public string name;
 
-        public List<int> skills = new List<int>();
+        public struct SkillInfo
+        {
+            public int id;
+            public short level;
+            public float duration;
+
+            public bool Write(Span<byte> s, ref ushort count)
+            {
+                bool success = true;
+                success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.id);
+                count += sizeof(int);
+                success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.level);
+                count += sizeof(short);
+                success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.duration);
+                count += sizeof(float);
+
+                return success;
+            }
+
+            public void Read(ReadOnlySpan<byte> s, ref ushort count)
+            {
+                this.id = BitConverter.ToInt32(s.Slice(count, s.Length - count));
+                count += sizeof(int);
+                this.level = BitConverter.ToInt16(s.Slice(count, s.Length - count));
+                count += sizeof(short);
+                this.duration = BitConverter.ToSingle(s.Slice(count, s.Length - count));
+                count += sizeof(float);
+            }
+        }
+
+        public List<SkillInfo> skills = new List<SkillInfo>();
 
         public PlayerInfoReq()
         {
@@ -46,8 +76,21 @@ namespace Server
             ushort nameLen = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
             count += sizeof(ushort);
             // string 데이터
-            this.name = Encoding.Unicode.GetString(s.Slice(count, s.Length - count));
+            this.name = Encoding.Unicode.GetString(s.Slice(count, nameLen));
             count += nameLen;
+
+            // skill list
+            skills.Clear();
+            // skill이 몇 개인지의 헤더
+            ushort skillLen = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
+            count += sizeof(ushort);
+            // 실제 skill Data
+            for (int i = 0; i < skillLen; i++)
+            {
+                SkillInfo skill = new SkillInfo();
+                skill.Read(s, ref count);
+                skills.Add(skill);
+            }
         }
 
         public override ArraySegment<byte> Write()
@@ -73,6 +116,17 @@ namespace Server
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), nameLen);
             count += sizeof(ushort);
             count += nameLen;
+
+            // Skill list
+            // skill이 몇 개인지 헤더로 지정
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)skills.Count);
+            count += sizeof(ushort);
+            // 실제 skill Data
+            foreach (SkillInfo skill in skills)
+            {
+                success &= skill.Write(s, ref count);
+            }
+
 
             // 패킷의 size는 모든 작업이 끝난 후 넣어줘야 제대로 측정이 가능
             success &= BitConverter.TryWriteBytes(s, count);
@@ -132,6 +186,11 @@ namespace Server
                         PlayerInfoReq p = new PlayerInfoReq();
                         p.Read(buffer);
                         Console.WriteLine($"PlayerInfoReq: playerId({p.playerId}) name({p.name})");
+
+                        foreach (PlayerInfoReq.SkillInfo skill in p.skills)
+                        {
+                            Console.WriteLine($"Skill({skill.id}) ({skill.level}) ({skill.duration})");
+                        }
                     }
                     break;
             }
