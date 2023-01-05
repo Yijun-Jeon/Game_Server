@@ -7,17 +7,28 @@ using System.Collections.Generic;
 
 namespace DummyClient
 {
+
     // 플레이어 정보 요청 패킷  
     class PlayerInfoReq
     {
         public long playerId;
         public string name;
 
-        public struct SkillInfo
+        public struct Skill
         {
             public int id;
             public short level;
             public float duration;
+
+            public void Read(ReadOnlySpan<byte> s, ref ushort count)
+            {
+                this.id = BitConverter.ToInt32(s.Slice(count, s.Length - count));
+                count += sizeof(int);
+                this.level = BitConverter.ToInt16(s.Slice(count, s.Length - count));
+                count += sizeof(short);
+                this.duration = BitConverter.ToSingle(s.Slice(count, s.Length - count));
+                count += sizeof(float);
+            }
 
             public bool Write(Span<byte> s, ref ushort count)
             {
@@ -31,19 +42,9 @@ namespace DummyClient
 
                 return success;
             }
-
-            public void Read(ReadOnlySpan<byte> s, ref ushort count)
-            {
-                this.id = BitConverter.ToInt32(s.Slice(count, s.Length - count));
-                count += sizeof(int);
-                this.level = BitConverter.ToInt16(s.Slice(count, s.Length - count));
-                count += sizeof(short);
-                this.duration = BitConverter.ToSingle(s.Slice(count, s.Length - count));
-                count += sizeof(float);
-            }
         }
 
-        public List<SkillInfo> skills = new List<SkillInfo>();
+        public List<Skill> skills = new List<Skill>();
 
         public void Read(ArraySegment<byte> segment)
         {
@@ -54,7 +55,6 @@ namespace DummyClient
             count += sizeof(ushort);
             count += sizeof(ushort);
 
-            // 범위 초과 값은 자동으로 에러 처리 
             this.playerId = BitConverter.ToInt64(s.Slice(count, s.Length - count));
             count += sizeof(long);
 
@@ -66,14 +66,14 @@ namespace DummyClient
             count += nameLen;
 
             // skill list
-            skills.Clear();
+            this.skills.Clear();
             // skill이 몇 개인지의 헤더
             ushort skillLen = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
             count += sizeof(ushort);
             // 실제 skill Data
             for (int i = 0; i < skillLen; i++)
             {
-                SkillInfo skill = new SkillInfo();
+                Skill skill = new Skill();
                 skill.Read(s, ref count);
                 skills.Add(skill);
             }
@@ -93,6 +93,7 @@ namespace DummyClient
             count += sizeof(ushort);
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.PlayerInfoReq);
             count += sizeof(ushort);
+
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.playerId);
             count += sizeof(long);
 
@@ -108,16 +109,13 @@ namespace DummyClient
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)skills.Count);
             count += sizeof(ushort);
             // 실제 skill Data
-            foreach(SkillInfo skill in skills)
+            foreach (Skill skill in skills)
             {
                 success &= skill.Write(s, ref count);
             }
 
-
             // 패킷의 size는 모든 작업이 끝난 후 넣어줘야 제대로 측정이 가능
             success &= BitConverter.TryWriteBytes(s, count);
-
-
             if (success == false)
                 return null;
 
@@ -139,10 +137,10 @@ namespace DummyClient
             Console.WriteLine($"OnConnected: {endPoint}");
 
             PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001, name = "Yijun" };
-            packet.skills.Add(new PlayerInfoReq.SkillInfo() { id = 101, level = 1, duration = 3.0f });
-            packet.skills.Add(new PlayerInfoReq.SkillInfo() { id = 201, level = 2, duration = 4.0f });
-            packet.skills.Add(new PlayerInfoReq.SkillInfo() { id = 301, level = 3, duration = 5.0f });
-            packet.skills.Add(new PlayerInfoReq.SkillInfo() { id = 401, level = 4, duration = 6.0f });
+            packet.skills.Add(new PlayerInfoReq.Skill() { id = 101, level = 1, duration = 3.0f });
+            packet.skills.Add(new PlayerInfoReq.Skill() { id = 201, level = 2, duration = 4.0f });
+            packet.skills.Add(new PlayerInfoReq.Skill() { id = 301, level = 3, duration = 5.0f });
+            packet.skills.Add(new PlayerInfoReq.Skill() { id = 401, level = 4, duration = 6.0f });
 
             // 보낸다
             //for (int i = 0; i < 5; i++)
