@@ -8,6 +8,8 @@ namespace PacketGenerator
     {
         // output 파일에 저장될 내용 
         static string genPackets;
+        static ushort packetId;
+        static string packetEnums;
 
         static void Main(string[] args)
         {
@@ -29,8 +31,9 @@ namespace PacketGenerator
                     if (r.Depth == 1 && r.NodeType == XmlNodeType.Element)
                         ParsePacket(r);
                 }
-
-                File.WriteAllText("GenPacket.cs", genPackets);
+                // {0} 패킷 이름/번호 목록 {1} 패킷 목록 
+                string fileText = string.Format(PacketFormat.fileFormat, packetEnums, genPackets);
+                File.WriteAllText("GenPacket.cs", fileText);
             }
         }
 
@@ -57,6 +60,11 @@ namespace PacketGenerator
             // 패킷 
             genPackets += string.Format(PacketFormat.packetFormat,
                 packetName, t.Item1, t.Item2, t.Item3);
+
+            // 패킷 enum
+            // {0} 패킷 이름 {1} 패킷 번호 
+            packetEnums += string.Format(PacketFormat.packetEnumFormat, packetName, ++packetId);
+            packetEnums += Environment.NewLine + "\t";
         }
 
         // {1} 멤버 변수들
@@ -95,8 +103,16 @@ namespace PacketGenerator
                 string memberType = r.Name.ToLower();
                 switch (memberType)
                 {
-                    case "bool":
                     case "byte":
+                    case "sbyte":
+                        // {0} 변수 형식 {1} 변수 이름 
+                        memberCode += string.Format(PacketFormat.memberFormat, memberType, memberName);
+                        // {0} 변수 이름 {1} 변수 형식 
+                        readCode += string.Format(PacketFormat.readByteFormat, memberName, memberType);
+                        // {0} 변수 이름 {1} 변수 형식 
+                        writeCode += string.Format(PacketFormat.writeByteFormat, memberName, memberType);
+                        break;
+                    case "bool":
                     case "short":
                     case "ushort":
                     case "int":

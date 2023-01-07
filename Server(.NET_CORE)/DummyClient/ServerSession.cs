@@ -8,17 +8,48 @@ using System.Collections.Generic;
 namespace DummyClient
 {
 
+    // 패킷의 분류를 위한 ID
+    public enum PacketID
+    {
+        PlayerInfoReq = 1,
+        Test = 2,
+
+    }
+
     // 플레이어 정보 요청 패킷  
     class PlayerInfoReq
     {
+        public byte testByte;
         public long playerId;
         public string name;
 
-        public struct Skill
+        public class Skill
         {
             public int id;
             public short level;
             public float duration;
+
+            public class Attribute
+            {
+                public int att;
+
+                public void Read(ReadOnlySpan<byte> s, ref ushort count)
+                {
+                    this.att = BitConverter.ToInt32(s.Slice(count, s.Length - count));
+                    count += sizeof(int);
+                }
+
+                public bool Write(Span<byte> s, ref ushort count)
+                {
+                    bool success = true;
+                    success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.att);
+                    count += sizeof(int);
+
+                    return success;
+                }
+            }
+
+            public List<Attribute> attributes = new List<Attribute>();
 
             public void Read(ReadOnlySpan<byte> s, ref ushort count)
             {
@@ -28,6 +59,19 @@ namespace DummyClient
                 count += sizeof(short);
                 this.duration = BitConverter.ToSingle(s.Slice(count, s.Length - count));
                 count += sizeof(float);
+
+                // attribute list
+                this.attributes.Clear();
+                // attribute이 몇 개인지의 헤더
+                ushort attributeLen = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
+                count += sizeof(ushort);
+                // 실제 attribute Data
+                for (int i = 0; i < attributeLen; i++)
+                {
+                    Attribute attribute = new Attribute();
+                    attribute.Read(s, ref count);
+                    attributes.Add(attribute);
+                }
             }
 
             public bool Write(Span<byte> s, ref ushort count)
@@ -39,6 +83,16 @@ namespace DummyClient
                 count += sizeof(short);
                 success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.duration);
                 count += sizeof(float);
+
+                // Attribute list
+                // attribute이 몇 개인지 헤더로 지정
+                success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)attributes.Count);
+                count += sizeof(ushort);
+                // 실제 attribute Data
+                foreach (Attribute attribute in attributes)
+                {
+                    success &= attribute.Write(s, ref count);
+                }
 
                 return success;
             }
@@ -54,6 +108,9 @@ namespace DummyClient
 
             count += sizeof(ushort);
             count += sizeof(ushort);
+
+            this.testByte = (byte)segment.Array[segment.Offset + count];
+            count += sizeof(byte);
 
             this.playerId = BitConverter.ToInt64(s.Slice(count, s.Length - count));
             count += sizeof(long);
@@ -94,6 +151,9 @@ namespace DummyClient
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.PlayerInfoReq);
             count += sizeof(ushort);
 
+            segment.Array[segment.Offset + count] = (byte)this.testByte;
+            count += sizeof(byte);
+
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.playerId);
             count += sizeof(long);
 
@@ -122,13 +182,52 @@ namespace DummyClient
             return SendBufferHelper.Close(count);
         }
     }
-
-    // 패킷의 분류를 위한 ID
-    public enum PacketID
+    // 플레이어 정보 요청 패킷  
+    class Test
     {
-        PlayerInfoReq = 1,
-        PlayerInfoOK = 2
+        public int testInt;
+
+        public void Read(ArraySegment<byte> segment)
+        {
+            ushort count = 0;
+
+            ReadOnlySpan<byte> s = new ReadOnlySpan<byte>(segment.Array, segment.Offset, segment.Count);
+
+            count += sizeof(ushort);
+            count += sizeof(ushort);
+
+            this.testInt = BitConverter.ToInt32(s.Slice(count, s.Length - count));
+            count += sizeof(int);
+        }
+
+        public ArraySegment<byte> Write()
+        {
+            ArraySegment<byte> segment = SendBufferHelper.Open(4096);
+
+            ushort count = 0;
+            bool success = true;
+
+            Span<byte> s = new Span<byte>(segment.Array, segment.Offset, segment.Count);
+
+            // 공간이 모자르면 실패
+            // Count -> 쓸 수 있는 공간
+            count += sizeof(ushort);
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.Test);
+            count += sizeof(ushort);
+
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.testInt);
+            count += sizeof(int);
+
+            // 패킷의 size는 모든 작업이 끝난 후 넣어줘야 제대로 측정이 가능
+            success &= BitConverter.TryWriteBytes(s, count);
+            if (success == false)
+                return null;
+
+            return SendBufferHelper.Close(count);
+        }
     }
+
+
 
     class ServerSession : Session
     {
@@ -137,7 +236,11 @@ namespace DummyClient
             Console.WriteLine($"OnConnected: {endPoint}");
 
             PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001, name = "Yijun" };
-            packet.skills.Add(new PlayerInfoReq.Skill() { id = 101, level = 1, duration = 3.0f });
+
+            var skill = new PlayerInfoReq.Skill() { id = 101, level = 1, duration = 3.0f };
+            skill.attributes.Add(new PlayerInfoReq.Skill.Attribute() { att = 77 });
+            packet.skills.Add(skill);
+
             packet.skills.Add(new PlayerInfoReq.Skill() { id = 201, level = 2, duration = 4.0f });
             packet.skills.Add(new PlayerInfoReq.Skill() { id = 301, level = 3, duration = 5.0f });
             packet.skills.Add(new PlayerInfoReq.Skill() { id = 401, level = 4, duration = 6.0f });
