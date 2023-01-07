@@ -22,13 +22,13 @@ namespace DummyClient
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, 7000);
 
             Connector connector = new Connector();
-            connector.Connect(endPoint, () => { return new ServerSession(); });
+            connector.Connect(endPoint, () => { return SessionManager.Instance.Generate(); },10);
 
             while (true)
             {
                 try
                 {
-                    
+                    SessionManager.Instance.SendForEach();   
                 }
                 catch (Exception e)
                 {
@@ -36,7 +36,7 @@ namespace DummyClient
                 }
 
                 // 1초마다 반복  
-                Thread.Sleep(1000);
+                Thread.Sleep(250);
             }
         }
     }

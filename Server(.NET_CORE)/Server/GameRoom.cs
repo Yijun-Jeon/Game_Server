@@ -31,18 +31,17 @@ namespace Server
         // 채팅메시지 전달
         public void BroadCast(ClientSession session, string chat)
 		{
-			lock (_lock)
-			{
-				S_Chat packet = new S_Chat();
-                packet.playerId = session.SessionId;
-                packet.chat = chat;
-				ArraySegment<byte> segment = packet.Write();
+			S_Chat packet = new S_Chat();
+            packet.playerId = session.SessionId;
+            packet.chat = $"{chat} I am {packet.playerId}";
+			ArraySegment<byte> segment = packet.Write();
 
-				lock (_lock)
-				{
-					foreach (ClientSession s in _sessions)
-                        s.Send(segment);
-				}
+            // 다른 Thread와 공유하고 있는 변수를 다루면 반드시 lock
+            // 멀티쓰레드에서 대부분의 Thread가 여기서 대기
+            lock (_lock)
+			{
+				foreach (ClientSession s in _sessions)
+                    s.Send(segment);
 			}
 		}
     }
