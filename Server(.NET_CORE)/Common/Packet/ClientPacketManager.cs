@@ -26,8 +26,8 @@ class PacketManager
     // 멀티쓰레드가 개입되기 전에 가장 먼저 실행해 주어야 함
     public void Register()
     {
-      _onRecv.Add((ushort)PacketID.S_Test, MakePacket<S_Test>);
-        _handler.Add((ushort)PacketID.S_Test, PacketHandler.S_TestHandler); // 대상 함수는 직접 작성
+      _onRecv.Add((ushort)PacketID.S_Chat, MakePacket<S_Chat>);
+        _handler.Add((ushort)PacketID.S_Chat, PacketHandler.S_ChatHandler); // 대상 함수는 직접 작성
 
 
     }

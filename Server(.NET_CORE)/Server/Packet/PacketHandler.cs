@@ -1,4 +1,5 @@
 ﻿using System;
+using Server;
 using ServerCore;
 
 
@@ -7,18 +8,16 @@ using ServerCore;
 class PacketHandler
 {         
     // 사용자 지정 함수 - 원하는 액션
-    public static void C_PlayerInfoReqHandler(PacketSession session, IPacket packet)
+    public static void C_ChatHandler(PacketSession session, IPacket packet)
 	{
-        C_PlayerInfoReq p = packet as C_PlayerInfoReq;
+        C_Chat chatPacket = packet as C_Chat;
+        ClientSession clientSession = session as ClientSession;
 
-        Console.WriteLine($"PlayerInfoReq: playerId({p.playerId}) name({p.name})");
+        if (clientSession.Room == null)
+            return;
 
-        foreach (C_PlayerInfoReq.Skill skill in p.skills)
-        {
-            Console.WriteLine($"Skill({skill.id}) ({skill.level}) ({skill.duration})");
-            foreach (C_PlayerInfoReq.Skill.Attribute att in skill.attributes)
-                Console.WriteLine($"Attribute({att.att})");
-        }
+        // session의 메시지를 모두에게 뿌려주는 역할
+        clientSession.Room.BroadCast(clientSession, chatPacket.chat);
     }
 }
 
