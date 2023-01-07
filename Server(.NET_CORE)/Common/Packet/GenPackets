@@ -5,4 +5,6 @@
 
 #cp [파일] [타겟 주소] - 파일을 해당 타겟 주소로 복사 -f : 덮어쓰기
 cp -f ./GenPackets.cs ./../../DummyClient/Packet
+cp -f ./ClientPacketManager.cs ./../../DummyClient/Packet
 cp -f ./GenPackets.cs ./../../Server/Packet
+cp -f ./ServerPacketManager.cs ./../../Server/Packet

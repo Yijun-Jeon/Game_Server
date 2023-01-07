@@ -11,6 +11,9 @@ namespace PacketGenerator
         static ushort packetId;
         static string packetEnums;
 
+        static string clientRegister;
+        static string serverRegister;
+
         static void Main(string[] args)
         {
             // default 경로 값 
@@ -40,6 +43,16 @@ namespace PacketGenerator
                 // {0} 패킷 이름/번호 목록 {1} 패킷 목록 
                 string fileText = string.Format(PacketFormat.fileFormat, packetEnums, genPackets);
                 File.WriteAllText("GenPackets.cs", fileText);
+
+                // 서버
+                // {0} 패킷 등록 
+                string serverManagerText = string.Format(PacketFormat.packetManagerFormat, serverRegister);
+                File.WriteAllText("ServerPacketManager.cs", serverManagerText);
+
+                // 클
+                // {0} 패킷 등록 
+                string clientManagerText = string.Format(PacketFormat.packetManagerFormat, clientRegister);
+                File.WriteAllText("ClientPacketManager.cs", clientManagerText);
             }
         }
 
@@ -71,6 +84,20 @@ namespace PacketGenerator
             // {0} 패킷 이름 {1} 패킷 번호 
             packetEnums += string.Format(PacketFormat.packetEnumFormat, packetName, ++packetId);
             packetEnums += Environment.NewLine + "\t";
+
+            if (packetName.StartsWith("C_") || packetName.StartsWith("c_"))
+            {
+                // 클라 -> 서버 패킷 Register
+                serverRegister += string.Format(PacketFormat.registerFormat, packetName);
+                serverRegister += Environment.NewLine;
+            }
+            else if (packetName.StartsWith("S_") || packetName.StartsWith("s_"))
+            {
+                // 서버 -> 클라 패킷 Register
+                clientRegister += string.Format(PacketFormat.registerFormat, packetName);
+                clientRegister += Environment.NewLine;
+            }
+            
         }
 
         // {1} 멤버 변수들
