@@ -13,13 +13,19 @@ namespace PacketGenerator
 
         static void Main(string[] args)
         {
+            // default 경로 값 
+            string pdlPath = "../PDL.xml";
+
             XmlReaderSettings settings = new XmlReaderSettings()
             {
                 IgnoreComments = true,
                 IgnoreWhitespace = true
             };
 
-            using (XmlReader r = XmlReader.Create("PDL.xml", settings))
+            if (args.Length >= 1)
+                pdlPath = args[0];
+
+            using (XmlReader r = XmlReader.Create(pdlPath, settings))
             {
                 // 내용이 있는 부분으로 이동 
                 r.MoveToContent();
@@ -33,7 +39,7 @@ namespace PacketGenerator
                 }
                 // {0} 패킷 이름/번호 목록 {1} 패킷 목록 
                 string fileText = string.Format(PacketFormat.fileFormat, packetEnums, genPackets);
-                File.WriteAllText("GenPacket.cs", fileText);
+                File.WriteAllText("GenPackets.cs", fileText);
             }
         }
 
