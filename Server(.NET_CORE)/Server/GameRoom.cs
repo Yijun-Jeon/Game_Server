@@ -8,13 +8,25 @@ namespace Server
 	{
         // 방에 있는 Client들 리스트 
         List<ClientSession> _sessions = new List<ClientSession>();
-		object _lock = new object();
 		JobQueue _jobQueue = new JobQueue();
+
+		// 패킷 모아보내기를 위해 임시로 패킷들을 저장해 둘 리스트
+		List<ArraySegment<byte>> _pendingList = new List<ArraySegment<byte>>();
 
 		public void Push(Action job)
 		{
 			_jobQueue.Push(job);
 		}
+
+		// 리스트 단위로 Flush
+		public void Flush()
+		{
+            foreach (ClientSession s in _sessions)
+            	s.Send(_pendingList);
+
+			Console.WriteLine($"Flushed {_pendingList.Count} items");
+			_pendingList.Clear();
+        }
 
         // 입장
         public void Enter(ClientSession session)
@@ -39,8 +51,10 @@ namespace Server
             packet.chat = $"{chat} I am {packet.playerId}";
 			ArraySegment<byte> segment = packet.Write();
 
-			foreach (ClientSession s in _sessions)
-				s.Send(segment);
+			// 패킷 모아보내기 
+			_pendingList.Add(segment);
+			//foreach (ClientSession s in _sessions)
+			//	s.Send(segment);
 		}
     }
 }

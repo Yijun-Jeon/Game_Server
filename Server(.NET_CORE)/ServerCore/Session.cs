@@ -17,6 +17,8 @@ namespace ServerCore
 		{
 			// 몇 바이트 처리했는지 기록 
 			int processLen = 0;
+			// 몇 패킷을 처리했는지 기록
+			int packetCount = 0;
 
 			while (true)
 			{
@@ -31,12 +33,14 @@ namespace ServerCore
 
 				// 패킷 조립 가능
 				OnRecvPacket(new ArraySegment<byte>(buffer.Array,buffer.Offset,dataSize));
+				packetCount++;
 
 				processLen += dataSize;
 				// 다음 패킷 부분으로 버퍼 변경
 				buffer = new ArraySegment<byte>(buffer.Array, buffer.Offset + dataSize, buffer.Count - dataSize);
 			}
-
+			if(packetCount > 1)
+				Console.WriteLine($"패킷 모아보내기 : {packetCount}");
 			return processLen;
 		}
 
@@ -49,7 +53,7 @@ namespace ServerCore
 		Socket _socket;
 		int _disconnected = 0;
 
-		RecvBuffer _recvBuffer = new RecvBuffer(1024);
+		RecvBuffer _recvBuffer = new RecvBuffer(65535);
 
         object _lock = new object();
 		Queue<ArraySegment<byte>> _sendQueue = new Queue<ArraySegment<byte>>();
@@ -94,7 +98,24 @@ namespace ServerCore
             }
         }
 
-		public void Disconnect()
+		// List 단위의 Send 처리 
+        public void Send(List<ArraySegment<byte>> sendBuffList)
+        {
+			if (sendBuffList.Count == 0)
+				return;
+
+            lock (_lock)
+            {
+				foreach (ArraySegment<byte> sendBuff in sendBuffList)
+					_sendQueue.Enqueue(sendBuff);
+                
+                // 전송 가능
+                if (_pendingList.Count == 0)
+                    RegisterSend();
+            }
+        }
+
+        public void Disconnect()
 		{
 			// 중복 처리 방지
 			if (Interlocked.Exchange(ref _disconnected, 1) == 1)

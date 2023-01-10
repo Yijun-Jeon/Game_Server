@@ -22,7 +22,7 @@ namespace DummyClient
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, 7000);
 
             Connector connector = new Connector();
-            connector.Connect(endPoint, () => { return SessionManager.Instance.Generate(); },20);
+            connector.Connect(endPoint, () => { return SessionManager.Instance.Generate(); },200);
 
             while (true)
             {
