@@ -13,6 +13,15 @@ namespace Server
         static Listener _listener = new Listener();
         public static GameRoom Room = new GameRoom();
 
+        // 예약 작업 - Room이외에도 개별적으로 적용
+        static void FlushRoom()
+        {
+            Room.Push(() => Room.Flush());
+
+            // 0.25초 후에 다시 실행해달라고 계속 예약
+            JobTimer.Instance.Push(FlushRoom, 250);
+        }
+
         static void Main(string[] args)
         {
             // DNS (Domain Name System)
@@ -27,10 +36,11 @@ namespace Server
             _listener.Init(endPoint, () => { return SessionManager.Instance.Generate(); });
             Console.WriteLine("Listening...");
 
+            FlushRoom();
             while (true)
             {
-                Room.Push(() => Room.Flush());
-                Thread.Sleep(250);
+                // 실행할 일감이 있는지만 계속 검사 
+                JobTimer.Instance.Flush();    
             }
         }
     }
