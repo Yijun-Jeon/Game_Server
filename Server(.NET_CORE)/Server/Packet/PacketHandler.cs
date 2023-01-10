@@ -17,7 +17,14 @@ class PacketHandler
             return;
 
         // session의 메시지를 모두에게 뿌려주는 역할
-        clientSession.Room.BroadCast(clientSession, chatPacket.chat);
+        //clientSession.Room.BroadCast(clientSession, chatPacket.chat);
+
+        // jobQueue 사용
+        GameRoom room = clientSession.Room;
+        room.Push(() =>
+        {
+            room.BroadCast(clientSession, chatPacket.chat);
+        });
     }
 }
 

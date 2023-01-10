@@ -16,7 +16,12 @@ namespace Server
         {
             Console.WriteLine($"OnConnected: {endPoint}");
 
-            Program.Room.Enter(this);
+            //Program.Room.Enter(this);
+            // jobQueue 사용
+            Program.Room.Push(() =>
+            {
+                Program.Room.Enter(this);
+            });
         }
 
         public override void OnRecvPacket(ArraySegment<byte> buffer)
@@ -29,7 +34,15 @@ namespace Server
             SessionManager.Instance.Remove(this);
             if(Room != null)
             {
-                Room.Leave(this);
+                //Room.Leave(this);
+                // jobQueue 사용
+                GameRoom room = Room;
+
+                room.Push(() =>
+                {
+                    room.Leave(this);
+                });
+                
                 Room = null;
             }
 
